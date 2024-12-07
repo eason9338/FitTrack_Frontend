@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -6,18 +6,19 @@ import {
   TextInput,
   SafeAreaView,
   ScrollView,
+  StyleSheet,
+  Alert,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { layout, typography, buttonStyles, formStyles } from '../styles'; 
+import { theme } from '../styles/theme';
+import { authStorage } from '../utils/auth';
 import AddExerciseModal from '../components/AddExerciseModal';
+import { config } from '../config';
 
 const AddTrackPage = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
-  
-  // 改為二層結構：exercises 包含多個運動，每個運動有自己的 sets
   const [exercises, setExercises] = useState([]);
 
-  // 為特定運動添加新的一組
   const addSet = (exerciseId) => {
     setExercises(exercises.map(exercise => {
       if (exercise.id === exerciseId) {
@@ -31,59 +32,108 @@ const AddTrackPage = () => {
     }));
   };
 
-  // 添加新的運動項目
-  const addExercise = (exerciseName) => {
-    const newExerciseId = exercises.length + 1;
+  const addExercise = (exercise) => {
     setExercises([
       ...exercises,
       {
-        id: newExerciseId,
-        name: exerciseName,
+        id: exercise._id,
+        name: exercise.name,
         sets: [{ id: 1, weight: '', reps: '' }]
       }
     ]);
     setIsModalVisible(false);
   };
 
+  const updateSet = (exerciseId, setId, field, value) => {
+    setExercises(exercises.map(exercise => {
+      if(exercise.id === exerciseId) {
+        return {
+          ...exercise,
+          sets: exercise.sets.map(set => {
+            if(set.id === setId) {
+              return {
+                ...set,
+                [field]: value
+              }
+            }
+            return set;
+          })
+        }  
+      }
+      return exercise;
+    }))
+  }
+
+  const handleCreateRecord = async () => {
+    const token = await authStorage.getToken();
+
+    try {
+      const response = await fetch(`${config.baseURL}/api/record/createRecord`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          exercises
+        }),
+      });
+
+      const data = await response.json();
+      if(data.success) {
+        Alert.alert('完成', '訓練已成功建立');
+      } else {
+        Alert.alert('錯誤', '建立訓練中發生錯誤');
+        console.log(data);
+      }
+
+
+    } catch (error) {
+
+    }
+
+    setExercises([]);
+  }
+
+
   return (
-    <SafeAreaView style={layout.baseContainer}>
+    <SafeAreaView style={styles.baseContainer}>
       <ScrollView>
         {exercises.map((exercise) => (
-          <View key={exercise.id} style={layout.exerciseContainer}>
-            <Text style={typography.exerciseTitle}>{exercise.name}</Text>
+          <View key={exercise.id} style={styles.exerciseContainer}>
+            <Text style={styles.exerciseTitle}>{exercise.name}</Text>
             
-            {/* set是exercise內的物件，包括id, weight, reps */}
-            {/* setIndex類似for迴圈中的i，用於追縱是第幾個物件 */}
             {exercise.sets.map((set, setIndex) => (
-              <View key={set.id} style={layout.exerciseRow}>
-                <Text style={typography.exerciseNumber}>#{set.id}</Text>
+              <View key={set.id} style={styles.exerciseRow}>
+                <Text style={styles.exerciseNumber}>#{set.id}</Text>
                 
-                <View style={layout.inputContainer}>
-                  <View style={layout.inputWrapper}>
+                <View style={styles.inputContainer}>
+                  <View style={styles.inputWrapper}>
                     <TextInput
-                      style={formStyles.exerciseInput}
+                      style={styles.exerciseInput}
                       placeholder="重量 (kg)"
                       keyboardType="numeric"
                       value={set.weight}
+                      onChangeText={(value) => updateSet(exercise.id, set.id, 'weight', value)}
                     />
                   </View>
                   
-                  <View style={layout.inputWrapper}>
+                  <View style={styles.inputWrapper}>
                     <TextInput
-                      style={formStyles.exerciseInput}
+                      style={styles.exerciseInput}
                       placeholder="次數"
                       keyboardType="numeric"
                       value={set.reps}
+                      onChangeText={(value) => updateSet(exercise.id, set.id, 'reps', value)}
                     />
                   </View>
 
-                  {/* 類似for迴圈中的i用途，檢查是不是最後一個元件 */}
                   {setIndex === exercise.sets.length - 1 && (
                     <TouchableOpacity
-                      style={buttonStyles.addButton}
+                      style={styles.addButton}
                       onPress={() => addSet(exercise.id)}
                     >
-                      <Text style={buttonStyles.addButtonText}>+</Text>
+                      <Text style={styles.addButtonText}>+</Text>
                     </TouchableOpacity>
                   )}
                 </View>
@@ -93,16 +143,23 @@ const AddTrackPage = () => {
         ))}
 
         <TouchableOpacity
-          style={buttonStyles.newExerciseButton}
+          style={styles.actionButton}
           onPress={() => setIsModalVisible(true)}
         >
           <Ionicons name="add" size={24} color="white" />
-          <Text style={buttonStyles.newExerciseButtonText}>新增動作</Text>
+          <Text style={styles.actionButtonText}>新增動作</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.actionButton, styles.finishButton]}
+          onPress={() => handleCreateRecord()}
+        >
+          <Ionicons name="checkmark-outline" size={24} color="white" />
+          <Text style={styles.actionButtonText}>完成訓練</Text>
         </TouchableOpacity>
       </ScrollView>
       
       <AddExerciseModal 
-      // 這邊作為prop傳入modal的參數，是以參考的形式傳遞
         visible={isModalVisible}
         onClose={() => setIsModalVisible(false)}
         onAdd={addExercise}
@@ -110,5 +167,90 @@ const AddTrackPage = () => {
     </SafeAreaView>
   );
 };
+
+const styles = StyleSheet.create({
+  // Container styles
+  baseContainer: {
+    flex: 1,
+    backgroundColor: theme.colors.background,
+  },
+  exerciseContainer: {
+    backgroundColor: theme.colors.cardBg,
+    borderRadius: 12,
+    margin: theme.spacing.medium,
+    padding: theme.spacing.medium,
+    ...theme.shadows.small,
+  },
+  inputContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  inputWrapper: {
+    flex: 1,
+    marginHorizontal: theme.spacing.small/2,
+  },
+
+  // Typography styles
+  exerciseTitle: {
+    fontSize: theme.fontSize.large,
+    fontWeight: '600',
+    marginBottom: theme.spacing.medium,
+  },
+  exerciseNumber: {
+    width: 30,
+    fontSize: theme.fontSize.medium,
+    color: theme.colors.secondaryText,
+  },
+
+  // Exercise row styles
+  exerciseRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: theme.spacing.small,
+  },
+  exerciseInput: {
+    backgroundColor: theme.colors.background,
+    borderRadius: 8,
+    padding: theme.spacing.small,
+    fontSize: theme.fontSize.medium,
+    color: theme.colors.text,
+  },
+
+  // Button styles
+  addButton: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: theme.colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: theme.spacing.small,
+  },
+  addButtonText: {
+    color: '#FFFFFF',
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  actionButton: {
+    flexDirection: 'row',
+    backgroundColor: theme.colors.primary,
+    borderRadius: 12,
+    padding: theme.spacing.medium,
+    margin: theme.spacing.medium,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  actionButtonText: {
+    color: theme.colors.cardBg,
+    fontSize: theme.fontSize.medium,
+    fontWeight: '600',
+    marginLeft: theme.spacing.small,
+  },
+  finishButton: {
+    backgroundColor: '#34C759', // 使用固定的完成按鈕顏色
+  },
+});
 
 export default AddTrackPage;

@@ -6,27 +6,29 @@ import {
   TextInput,
   TouchableOpacity,
   Alert,
+  Dimensions,
 } from 'react-native';
-
-import { layout, typography, formStyles, buttonStyles } from '../styles';
 import { authStorage } from '../utils/auth';
+import { theme } from '../styles/theme';
+import { config } from '../config';
 
 const LoginPage = ({navigation}) => {
-
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [focusedInput, setFocusedInput] = useState(null);
 
   const handleLogin = async () => {
     try {
-      const response = await fetch('http://localhost:3000/api/auth/login', {
+      const response = await fetch(`${config.baseURL}/api/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          email,
-          password,
+          email: '9338akira@gmail.com',
+          password: '12345678'
+          // email,
+          // password,
         }),
       });
 
@@ -34,7 +36,6 @@ const LoginPage = ({navigation}) => {
 
       if (data.success) {
         await authStorage.storeAuth(data.data.token, data.data.user);
-        
         navigation.navigate('ProfileMain');
       } else {
         Alert.alert('錯誤', '登入失敗');
@@ -50,66 +51,146 @@ const LoginPage = ({navigation}) => {
     navigation.navigate('Register');
   }
 
-    return (
-      <View style={layout.centeredContainer}>
-        <View style={layout.card}>
-          <Text style={typography.title}>Login Page</Text>
+  return (
+    <View style={styles.centeredContainer}>
+      <View style={styles.card}>
+        <Text style={styles.title}>Login Page</Text>
 
-          <View style={formStyles.formGroup}>
-            <Text style={formStyles.label}>Email</Text>
-              <TextInput
-                //style可以傳入陣列，設定會被合併
-                style={[
-                  //永遠會套用
-                  formStyles.input,
-                  //邏輯運算式，在==='email'時會套用authStyles.inputFocused
-                  focusedInput === 'email' && formStyles.inputFocused
-                ]}
-                placeholder='Email'
-                value={email}
-                onChangeText={setEmail}
-                keyboardType='email-address'
-                autoCapitalize='none'
-                onFocus={() => setFocusedInput('email')}
-                onBlur={() => setFocusedInput(null)}
-              ></TextInput>
-          </View>
+        <View style={styles.formGroup}>
+          <Text style={styles.label}>Email</Text>
+          <TextInput
+            style={[
+              styles.input,
+              focusedInput === 'email' && styles.inputFocused
+            ]}
+            placeholder='Email'
+            value={email}
+            onChangeText={setEmail}
+            keyboardType='email-address'
+            autoCapitalize='none'
+            onFocus={() => setFocusedInput('email')}
+            onBlur={() => setFocusedInput(null)}
+          />
+        </View>
 
-          <View style={formStyles.formGroup}>
-            <Text style={formStyles.label}>Password</Text>
-              <TextInput
-                style={[
-                  formStyles.input,
-                  focusedInput === 'password' && formStyles.inputFocused
-                ]}
-                placeholder='Email'
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry
-                autoCapitalize='none'
-                onFocus={() => setFocusedInput('password')}
-                onBlur={() => setFocusedInput(null)}
-              ></TextInput>
-          </View>
+        <View style={styles.formGroup}>
+          <Text style={styles.label}>Password</Text>
+          <TextInput
+            style={[
+              styles.input,
+              focusedInput === 'password' && styles.inputFocused
+            ]}
+            placeholder='Password'
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry
+            autoCapitalize='none'
+            onFocus={() => setFocusedInput('password')}
+            onBlur={() => setFocusedInput(null)}
+          />
+        </View>
 
-          <TouchableOpacity
-            style={buttonStyles.button}
-            onPress={() => handleLogin()}
-            activeOpacity={0.7}
-          >
-            <Text style={buttonStyles.buttonText}>Log In</Text>
-          </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.actionButton}
+          onPress={() => handleLogin()}
+          activeOpacity={0.7}
+        >
+          <Text style={styles.actionButtonText}>Log In</Text>
+        </TouchableOpacity>
 
-          {/* 導航到register page 按鈕*/}
-          <View style={layout.rowCenter}>
-          <Text style={buttonStyles.textSecondary}>Don't have an account? </Text>
+        <View style={styles.rowCenter}>
+          <Text style={styles.textSecondary}>Don't have an account? </Text>
           <TouchableOpacity onPress={handleRegister}>
-            <Text style={typography.textLink}>Sign Up</Text>
+            <Text style={styles.textLink}>Sign Up</Text>
           </TouchableOpacity>
-          </View>
         </View>
       </View>
-    );
-  };
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  // Container styles
+  centeredContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: theme.colors.background,
+    padding: theme.spacing.large,
+  },
+  card: {
+    width: Math.min(400, Dimensions.get('window').width - 40),
+    backgroundColor: theme.colors.cardBg,
+    borderRadius: 16,
+    padding: theme.spacing.xl,
+    ...theme.shadows.small,
+  },
+  rowCenter: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 20,
+  },
+
+  // Typography styles
+  title: {
+    fontSize: theme.fontSize.xl,
+    fontWeight: 'bold',
+    color: theme.colors.text,
+    textAlign: 'center',
+    marginBottom: theme.spacing.xl,
+  },
+  textSecondary: {
+    fontSize: theme.fontSize.small,
+    color: theme.colors.secondaryText,
+  },
+  textLink: {
+    fontSize: theme.fontSize.small,
+    color: theme.colors.primary,
+    fontWeight: '600',
+  },
+
+  // Form styles
+  formGroup: {
+    marginBottom: theme.spacing.large,
+  },
+  label: {
+    fontSize: theme.fontSize.medium,
+    color: theme.colors.secondaryText,
+    marginBottom: theme.spacing.small,
+    fontWeight: '500',
+  },
+  input: {
+    height: 48,
+    borderWidth: 1.5,
+    borderColor: theme.colors.border,
+    borderRadius: 12,
+    paddingHorizontal: theme.spacing.medium,
+    fontSize: theme.fontSize.medium,
+    color: theme.colors.text,
+    backgroundColor: theme.colors.cardBg,
+  },
+  inputFocused: {
+    borderColor: theme.colors.primary,
+    borderWidth: 1.5,
+  },
+
+  // Button styles
+  actionButton: {
+    flexDirection: 'row',
+    backgroundColor: theme.colors.primary,
+    borderRadius: 12,
+    padding: theme.spacing.medium,
+    margin: theme.spacing.medium,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  actionButtonText: {
+    color: theme.colors.cardBg,
+    fontSize: theme.fontSize.medium,
+    fontWeight: '600',
+    marginLeft: theme.spacing.small,
+  },
+});
 
 export default LoginPage;

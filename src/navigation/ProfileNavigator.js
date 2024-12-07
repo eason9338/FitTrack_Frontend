@@ -3,6 +3,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import ProfilePage from '../screens/ProfilePage';
 import LoginPage from '../screens/LoginPage';
 import RegisterPage from '../screens/RegisterPage';
+import WorkoutPlansTab from '../screens/WorkoutPlansTab';
 
 const ProfileStack = createStackNavigator();
 
@@ -24,6 +25,7 @@ const ProfileNavigator = () => {
                 component={RegisterPage}
                 options= {{title: '註冊'}}
             ></ProfileStack.Screen>
+
         </ProfileStack.Navigator>
     )
 }

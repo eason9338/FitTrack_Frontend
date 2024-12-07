@@ -45,17 +45,18 @@ const App = () => {
       })}
       >
         <Tab.Screen
-          //登入註冊頁面、運動紀錄頁面
-          name="AddTrack"
-          component={AddTrackPage}
-          options={{title: '新增紀錄'}}
-        ></Tab.Screen>
-        <Tab.Screen
           //紀錄頁面
           name="Profile"
           component={ProfileNavigator}
           options={{headerShown: false, title: '我的頁面'}}
         ></Tab.Screen>
+        <Tab.Screen
+          //登入註冊頁面、運動紀錄頁面
+          name="AddTrack"
+          component={AddTrackPage}
+          options={{title: '新增紀錄'}}
+        ></Tab.Screen>
+
       </Tab.Navigator>
     </NavigationContainer>
   );

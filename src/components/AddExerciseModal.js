@@ -1,4 +1,3 @@
-// AddExerciseModal.js
 import React, { useEffect, useState } from 'react';
 import {
   View,
@@ -8,8 +7,10 @@ import {
   TextInput,
   FlatList,
   Alert,
+  StyleSheet,
 } from 'react-native';
-import { layout, typography, buttonStyles, formStyles } from '../styles';
+import { theme } from '../styles/theme';
+import { config } from '../config';
 
 const AddExerciseModal = ({ visible, onClose, onAdd }) => {
   const [categories, setCategories] = useState([]);
@@ -19,7 +20,7 @@ const AddExerciseModal = ({ visible, onClose, onAdd }) => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await fetch('http://localhost:3000/api/exercise/categories');
+        const response = await fetch(`${config.baseURL}/api/exercise/categories`);
         const data = await response.json();
         setCategories(data.data);
       } catch (error) {
@@ -35,7 +36,7 @@ const AddExerciseModal = ({ visible, onClose, onAdd }) => {
     try {
       const id = category.id;
       setSelectedCategory(id);
-      const response = await fetch(`http://localhost:3000/api/exercise/category/${id}`);
+      const response = await fetch(`${config.baseURL}/api/exercise/category/${id}`);
       const data = await response.json();
       setExercises(data.data);
     } catch (error) {
@@ -47,14 +48,14 @@ const AddExerciseModal = ({ visible, onClose, onAdd }) => {
   const renderCategoryButton = ({ item }) => (
     <TouchableOpacity 
       style={[
-        buttonStyles.categoryButton,
-        selectedCategory === item && buttonStyles.categoryButtonActive
+        styles.categoryButton,
+        selectedCategory === item && styles.categoryButtonActive
       ]}
       onPress={() => fetchExercises(item)}
     >
       <Text style={[
-        typography.categoryButtonText,
-        selectedCategory === item && typography.categoryButtonTextActive
+        styles.categoryButtonText,
+        selectedCategory === item && styles.categoryButtonTextActive
       ]}>
         {item.zh}
       </Text>
@@ -63,15 +64,15 @@ const AddExerciseModal = ({ visible, onClose, onAdd }) => {
 
   const renderExerciseItem = ({ item }) => (
     <TouchableOpacity 
-      style={layout.exerciseListItem}
-      onPress={() => onAdd(item.name)}  
+      style={styles.exerciseListItem}
+      onPress={() => onAdd(item)}  
     >
       <View>
-        <Text style={typography.exerciseItemTitle}>{item.name}</Text>
-        <Text style={typography.exerciseItemDescription}>{item.description}</Text>
-        <View style={layout.tagContainer}>
+        <Text style={styles.exerciseItemTitle}>{item.name}</Text>
+        <Text style={styles.exerciseItemDescription}>{item.description}</Text>
+        <View style={styles.tagContainer}>
           {item.targetMuscles.map((muscle, index) => (
-            <Text key={index} style={typography.exerciseItemTag}>
+            <Text key={index} style={styles.exerciseItemTag}>
               {muscle}{index < item.targetMuscles.length - 1 ? ', ' : ''}
             </Text>
           ))}
@@ -87,26 +88,25 @@ const AddExerciseModal = ({ visible, onClose, onAdd }) => {
       transparent={true}
       onRequestClose={onClose}
     >
-      <View style={layout.modalBackground}>
-        <View style={layout.modalContent}>
-          <View style={layout.modalHeader}>
+        <View style={styles.modalContent}>
+          <View style={styles.modalHeader}>
             <TouchableOpacity onPress={onClose}>
-              <Text style={typography.modalButtonText}>取消</Text>
+              <Text style={styles.modalButtonText}>取消</Text>
             </TouchableOpacity>
-            <Text style={typography.modalTitle}>新增動作</Text>
+            <Text style={styles.modalTitle}>新增動作</Text>
             <TouchableOpacity>
-              <Text style={typography.modalButtonTextPrimary}>完成</Text>
+              <Text style={styles.modalButtonTextPrimary}>完成</Text>
             </TouchableOpacity>
           </View>
 
-          <View style={layout.searchContainer}>
+          <View style={styles.searchContainer}>
             <TextInput 
-              style={formStyles.searchInput}
+              style={styles.searchInput}
               placeholder="搜尋動作"
             />
           </View>
 
-          <View style={layout.categoriesContainer}>
+          <View style={styles.categoriesContainer}>
             <FlatList
               horizontal
               showsHorizontalScrollIndicator={false}
@@ -117,16 +117,119 @@ const AddExerciseModal = ({ visible, onClose, onAdd }) => {
           </View>
 
           <FlatList
-            style={layout.exerciseList}
+            style={styles.exerciseList}
             data={exercises}
             renderItem={renderExerciseItem}
             keyExtractor={item => item._id}
-            ItemSeparatorComponent={() => <View style={layout.separator} />}
+            ItemSeparatorComponent={() => <View style={styles.separator} />}
           />
         </View>
-      </View>
     </Modal>
   );
 };
+
+const styles = StyleSheet.create({
+  // Modal base styles
+  modalContent: {
+    flex: 1,
+    backgroundColor: theme.colors.cardBg,
+    marginTop: 50,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: theme.spacing.medium,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.border,
+  },
+
+  // Search styles
+  searchContainer: {
+    padding: theme.spacing.small,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.border,
+  },
+  searchInput: {
+    backgroundColor: theme.colors.background,
+    borderRadius: 8,
+    padding: theme.spacing.small,
+    fontSize: theme.fontSize.medium,
+    color: theme.colors.text,
+  },
+
+  // Categories styles
+  categoriesContainer: {
+    height: 50,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.border,
+  },
+  categoryButton: {
+    paddingHorizontal: theme.spacing.medium,
+    paddingVertical: theme.spacing.small,
+    marginHorizontal: theme.spacing.xsmall,
+    marginVertical: theme.spacing.small,
+    borderRadius: 20,
+    backgroundColor: theme.colors.background,
+  },
+  categoryButtonActive: {
+    backgroundColor: theme.colors.primary,
+  },
+  categoryButtonText: {
+    color: theme.colors.secondaryText,
+    fontSize: theme.fontSize.small,
+  },
+  categoryButtonTextActive: {
+    color: theme.colors.cardBg,
+  },
+
+  // Exercise list styles
+  exerciseList: {
+    flex: 1,
+  },
+  exerciseListItem: {
+    padding: theme.spacing.medium,
+    backgroundColor: theme.colors.cardBg,
+  },
+  tagContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+  },
+  separator: {
+    height: 1,
+    backgroundColor: theme.colors.border,
+  },
+
+  // Typography styles
+  modalTitle: {
+    fontSize: theme.fontSize.medium,
+    fontWeight: '600',
+    color: theme.colors.text,
+  },
+  modalButtonText: {
+    fontSize: theme.fontSize.medium,
+    color: theme.colors.secondaryText,
+  },
+  modalButtonTextPrimary: {
+    fontSize: theme.fontSize.medium,
+    color: theme.colors.primary,
+    fontWeight: '600',
+  },
+  exerciseItemTitle: {
+    fontSize: theme.fontSize.medium,
+    fontWeight: '600',
+    marginBottom: theme.spacing.xsmall,
+    color: theme.colors.text,
+  },
+  exerciseItemDescription: {
+    fontSize: theme.fontSize.small,
+    color: theme.colors.secondaryText,
+    marginBottom: theme.spacing.small,
+  },
+  exerciseItemTag: {
+    fontSize: theme.fontSize.xsmall,
+    color: theme.colors.primary,
+  },
+});
 
 export default AddExerciseModal;
