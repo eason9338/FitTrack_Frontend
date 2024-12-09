@@ -8,36 +8,39 @@ import {
 import { Calendar } from 'react-native-calendars';
 import { theme } from '../styles/theme';
 import RecordModal from '../components/RecordDetailModal';
+import { authStorage } from '../utils/auth';
+import { config } from '../config';
+
 
 const WorkoutCalendarTab = () => {
     const [selectedDate, setSelectedDate] = useState('');
     const [modalVisible, setModalVisible] = useState(false);
-    const recordData = {
-        exercises: [
-            {
-                exercise: {
-                    name: "傳統臥推"
-                },
-                sets: [
-                    { weight: 40, reps: 10 },
-                    { weight: 40, reps: 10 }
-                ]
-            },
-            {
-                exercise: {
-                    name: "啞鈴飛鳥"
-                },
-                sets: [
-                    { weight: 10, reps: 12 }
-                ]
-            }
-        ]
-    };
-    
+    const [recordData, setRecordData] = useState(null);
+    // const recordData = {
+    //     exercises: [
+    //         {
+    //             exercise: {
+    //                 name: "傳統臥推"
+    //             },
+    //             sets: [
+    //                 { weight: 40, reps: 10 },
+    //                 { weight: 40, reps: 10 }
+    //             ]
+    //         },
+    //         {
+    //             exercise: {
+    //                 name: "啞鈴飛鳥"
+    //             },
+    //             sets: [
+    //                 { weight: 10, reps: 12 }
+    //             ]
+    //         }
+    //     ]
+    // };
     const markedDates = {
         '2024-12-01': { 
             marked: true, 
-            dotColor: theme.colors.secondary  // 改用 secondary 顏色作為運動標記
+            dotColor: theme.colors.secondary
         },
         '2024-12-03': { 
             marked: true, 
@@ -52,37 +55,52 @@ const WorkoutCalendarTab = () => {
         } : {})
     };
 
+    const getRecordData = async (date) => {
+        try {
+            const userData = await authStorage.getUser();
+    
+            const response = await fetch(`${config.baseURL}/api/record/getRecord/${userData.id}/${date}`);
+            const data = await response.json();
+            
+            if (data.success) {
+                setRecordData(data.data);
+            }
+        } catch (error) {
+            console.error('Error fetching record data:', error);
+        }
+    };
+
+    const handleDayPress = (day) => {
+        const newDate = day.dateString;
+        setSelectedDate(newDate);
+        setModalVisible(true);
+        // 直接使用 newDate 而不是依賴 selectedDate
+        getRecordData(newDate);
+    };
+
     return (
         <View style={styles.container}>
             <View style={styles.calendarContainer}>
                 <Calendar
-                    onDayPress={day => {
-                        setSelectedDate(day.dateString);
-                        setModalVisible(true);
-                    }}
+                    onDayPress={handleDayPress}
                     markedDates={markedDates}
                     theme={{
-                        // 文字顏色設定
                         todayTextColor: theme.colors.primary,
                         dayTextColor: theme.colors.text,
                         textDisabledColor: theme.colors.textTertiary,
                         monthTextColor: theme.colors.text,
                         textSectionTitleColor: theme.colors.textSecondary,
                         
-                        // 基本字體設定
                         textDayFontSize: 16,
                         textMonthFontSize: 18,
                         textDayHeaderFontSize: 14,
                         
-                        // 字體粗細
                         textDayFontWeight: '400',
                         textMonthFontWeight: '600',
                         textDayHeaderFontWeight: '500',
                         
-                        // 箭頭顏色
                         arrowColor: theme.colors.primary,
                         
-                        // 自定義日期格子樣式
                         'stylesheet.day.basic': {
                             base: {
                                 width: 32,
@@ -100,7 +118,7 @@ const WorkoutCalendarTab = () => {
                             }
                         },
                     }}
-                    style={ styles.calendar }
+                    style={styles.calendar}
                 />
             </View>
             

@@ -33,10 +33,10 @@ const RecordDetailModal = ({
     };
 
     const renderExercise = (exercise) => (
-        <View style={styles.exerciseItem} key={exercise.exercise.name}>
+        <View style={styles.exerciseItem} key={exercise._id}>
             <Text style={styles.exerciseName}>{exercise.exercise.name}</Text>
             {exercise.sets.map((set, index) => (
-                <View style={styles.setRow} key={index}>
+                <View style={styles.setRow} key={set._id}>
                     <Text style={styles.setNumber}>第 {index + 1} 組</Text>
                     <Text style={styles.setDetail}>{set.weight} kg × {set.reps} 下</Text>
                 </View>
@@ -64,9 +64,11 @@ const RecordDetailModal = ({
 
                 <ScrollView style={styles.modalScroll}>
                     <View style={styles.exercisesList}>
-                        {recordData.exercises.map(exercise => 
-                            renderExercise(exercise)
-                        )}
+                        {recordData && recordData[0]?.exercises ? 
+                            recordData[0].exercises.map(exercise => renderExercise(exercise)) 
+                            : 
+                            <Text>無資料</Text>
+                        }
                     </View>
                 </ScrollView>
 

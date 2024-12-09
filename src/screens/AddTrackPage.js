@@ -14,8 +14,10 @@ import { theme } from '../styles/theme';
 import { authStorage } from '../utils/auth';
 import AddExerciseModal from '../components/AddExerciseModal';
 import { config } from '../config';
+import { useNavigation } from '@react-navigation/native';
 
 const AddTrackPage = () => {
+  const navigation = useNavigation();
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [exercises, setExercises] = useState([]);
 
@@ -81,10 +83,24 @@ const AddTrackPage = () => {
 
       const data = await response.json();
       if(data.success) {
-        Alert.alert('完成', '訓練已成功建立');
+        Alert.alert('完成', '訓練已成功建立', [
+          {
+            text: '確定',
+            onPress: () => {
+              setExercises([]);
+              navigation.navigate('Profile');
+            }
+          }
+        ]);
+        setExercises([]);
+        navigation.navigate('AddTrack');
+
       } else {
         Alert.alert('錯誤', '建立訓練中發生錯誤');
         console.log(data);
+        setExercises([]);
+        navigation.navigate('AddTrack');
+
       }
 
 
@@ -92,7 +108,6 @@ const AddTrackPage = () => {
 
     }
 
-    setExercises([]);
   }
 
 
