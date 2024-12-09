@@ -1,6 +1,6 @@
 export const config = {
 
-  useRailway: false,  
+  useRailway: true,  
   
   urls: {
     local: 'http://localhost:3000',
