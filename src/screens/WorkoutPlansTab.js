@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     View,
     Text,
@@ -11,35 +11,97 @@ import {
 } from 'react-native';
 
 import { theme } from '../styles/theme';
-import { useNavigation } from '@react-navigation/native';
+import { authStorage } from '../utils/auth';
+import { config } from '../config'
+import { useNavigation, useIsFocused } from '@react-navigation/native';
 
 const WorkoutPlansTab = () => {
     const navigation = useNavigation();
+    const isFocused = useIsFocused();
+
+    const [plans, setPlans] = useState();
+    // [
+    //     {
+    //       "id": "675a8905b54108693718ac36",
+    //       "name": "test test",
+    //       "exercises": [
+    //         {
+    //           "id": "674d6ccc3e9f05239ec24448",
+    //           "name": "傳統臥推"
+    //         }
+    //       ]
+    //     },
+    //     {
+    //       "id": "675a8ae1b54108693718ac51",
+    //       "name": "Test2",
+    //       "exercises": [
+    //         {
+    //           "id": "674d6ccc3e9f05239ec24452",
+    //           "name": "肩推舉"
+    //         }
+    //       ]
+    //     }
+    //   ]
+
+    const handleGetPlan = async () => {
+        const user = await authStorage.getUser();
+        const userId = user.id;
+        const response = await fetch(`${config.baseURL}/api/plan/getPlanByUser/${userId}`)
+
+        const data = await response.json();
+        if (data.success) { 
+            const formattedData = data.data.map(plan => ({
+                id: plan._id,
+                name: plan.name,
+                exercises: plan.exercises.map(ex => ({
+                    id: ex.exercise._id,
+                    name: ex.exercise.name
+                }))
+            }))
+            setPlans(formattedData);
+        }
+    }
+
+    // const handleUsePlan = () => {
+        
+    //     const fetch(`${config.baseURL}/api/plan/getPlan/${planId}`)
+    // }
+
+    useEffect(() => {
+        if(isFocused) {
+            handleGetPlan()
+        }
+    }, [isFocused])
 
     return (
         <ScrollView style={styles.tabContainer}>
             <TouchableOpacity 
                 style={styles.addPlanButton}
+                onPress={() => navigation.navigate('AddWorkoutPlan')}
             >
                 <Text style={styles.addPlanButtonText}>新增健身計畫</Text>
             </TouchableOpacity>
             
             {/* Example workout plan cards */}
-            <TouchableOpacity 
-                style={styles.planCard}
-                onPress={() => navigation.navigate('AddTrack')}
-            >
-                <Text style={styles.planTitle}>上半身訓練</Text>
-                <Text style={styles.planDescription}>胸部 • 背部 • 手臂</Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity 
-                style={styles.planCard}
-                onPress={() => navigation.navigate('AddTrack')}
-            >
-                <Text style={styles.planTitle}>下半身訓練</Text>
-                <Text style={styles.planDescription}>腿部 • 臀部</Text>
-            </TouchableOpacity>
+            <View>
+                {plans ? (
+                    plans.map((plan, planIndex) => (
+                        <TouchableOpacity 
+                            style={styles.planCard}
+                            onPress={() => navigation.navigate('AddWorkout', {
+                                plan: plan.exercises,
+                                name: plan.name
+                            })}
+                        >
+                            <Text style={styles.planTitle}>{plan.name}</Text>
+                            <Text style={styles.planDescription}>{plan.exercises.map(ex => ex.name).join(' • ')}</Text>
+                        </TouchableOpacity>
+                    ))
+                ) : (
+                    <Text>目前還沒有健身計畫，點擊上方按鈕新增計畫</Text>
+                )}
+            </View>
+
         </ScrollView>
     );
 }

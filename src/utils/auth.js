@@ -43,6 +43,11 @@ export const authStorage = {
     getUser: async () => {
         try {
             const userStr = await AsyncStorage.getItem(USER_KEY);
+            // user: {
+            //     id,
+            //     email,
+            //     name
+            // }
             return userStr ? JSON.parse(userStr) : null;
         } catch (error) {
             console.error('Error getting user data: ', error);

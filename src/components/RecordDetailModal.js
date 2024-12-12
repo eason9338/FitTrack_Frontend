@@ -53,7 +53,7 @@ const RecordDetailModal = ({
         >
             <SafeAreaView style={styles.modalContent}>
                 <View style={styles.modalHeader}>
-                    <Text style={styles.modalTitle}>{selectedDate} 的訓練紀錄</Text>
+                    <Text style={styles.modalTitle}>{selectedDate}</Text>
                     <TouchableOpacity 
                         style={styles.closeButton}
                         onPress={onClose}
@@ -64,11 +64,17 @@ const RecordDetailModal = ({
 
                 <ScrollView style={styles.modalScroll}>
                     <View style={styles.exercisesList}>
-                        {recordData && recordData[0]?.exercises ? 
-                            recordData[0].exercises.map(exercise => renderExercise(exercise)) 
-                            : 
+                        {recordData && recordData.length > 0 ? (
+
+                            recordData.map((record) => (
+                                <View key={record._id} style={styles.recordContainer}>
+                                    <Text style = {styles.recordTitle}>{record.name}</Text>
+                                    {record.exercises.map(exercise => renderExercise(exercise))}
+                                </View>
+                            ))
+                        ) : (
                             <Text>無資料</Text>
-                        }
+                        )}
                     </View>
                 </ScrollView>
 
@@ -120,6 +126,15 @@ const styles = StyleSheet.create({
     modalScroll: {
         flex: 1,
     },
+    recordContainer: {
+        marginBottom: 24,  // 每筆訓練記錄之間的間距
+    },
+    recordTitle: {
+        fontSize: theme.fontSize.large,
+        fontWeight: '600',
+        color: theme.colors.text,
+        marginBottom: 12,
+    },
     exercisesList: {
         padding: 16,
         gap: 16,
@@ -128,16 +143,11 @@ const styles = StyleSheet.create({
         backgroundColor: theme.colors.surface,
         borderRadius: 12,
         padding: 16,
-        elevation: 2,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.2,
-        shadowRadius: 2,
     },
     exerciseName: {
         fontSize: theme.fontSize.medium,
         fontWeight: '600',
-        color: theme.colors.text,
+        color: theme.colors.textSecondary,
         marginBottom: 12,
     },
     setRow: {

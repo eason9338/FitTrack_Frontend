@@ -1,7 +1,7 @@
 import 'react-native-gesture-handler';  // 必須在最頂部導入
 import React from 'react';
-import AddTrackPage from './screens/AddTrackPage';
-import { common } from './styles/common';
+import AddWorkoutPage from './screens/AddWorkoutPage';
+import AddWorkoutPlanPage from './screens/AddWorkoutPlanPage';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
@@ -28,7 +28,7 @@ const App = () => {
         tabBarIcon: ({focused, color, size}) => {
           let iconName;
 
-          if (route.name === 'AddTrack') {
+          if (route.name === 'AddWorkout') {
             iconName = focused ? 'add-circle' : 'add-circle-outline';
           } else if (route.name === 'Profile') {
             iconName = focused ? 'person' : 'person-outline';
@@ -52,11 +52,10 @@ const App = () => {
         ></Tab.Screen>
         <Tab.Screen
           //登入註冊頁面、運動紀錄頁面
-          name="AddTrack"
-          component={AddTrackPage}
+          name="AddWorkout"
+          component={AddWorkoutPage}
           options={{title: '新增紀錄'}}
         ></Tab.Screen>
-
       </Tab.Navigator>
     </NavigationContainer>
   );

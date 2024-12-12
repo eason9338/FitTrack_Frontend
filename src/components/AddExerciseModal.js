@@ -94,7 +94,7 @@ const AddExerciseModal = ({ visible, onClose, onAdd }) => {
               <Text style={styles.modalButtonText}>取消</Text>
             </TouchableOpacity>
             <Text style={styles.modalTitle}>新增動作</Text>
-            <TouchableOpacity>
+            <TouchableOpacity onPress={onClose}>
               <Text style={styles.modalButtonTextPrimary}>完成</Text>
             </TouchableOpacity>
           </View>
